@@ -1,6 +1,8 @@
 package callmepunter.hackerrank;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class ClimbLeaderboard {
 
@@ -8,42 +10,45 @@ public class ClimbLeaderboard {
         int[] ranks = new int[scores.length];
         ranks[0] = 1;
         for (int i = 1; i < scores.length; i++) {
-            if (scores[i - 1] == scores[i]) {
+            if (scores[i] == scores[i - 1]) {
                 ranks[i] = ranks[i - 1];
-            }
-            if (scores[i] < scores[i - 1]) {
+            } else if (scores[i] < scores[i - 1]) {
                 ranks[i] = ranks[i - 1] + 1;
             }
         }
         return ranks;
     }
 
-
     // Complete the climbingLeaderboard function below.
     static int[] climbingLeaderboard(int[] scores, int[] alice) {
-        int n = scores.length;
         int[] ranks = doRanking(scores);
         int[] aliceRanks = new int[alice.length];
-        prints("Scores", scores);
-        prints("Ranks", ranks);
-        prints("alice's scores", alice);
+        //prints("Scores", scores);
+        //prints("Ranks", ranks);
+        //prints("alice's scores", alice);
 
         //for each of alice score
-        int aliceCounter = 0;
-        while (aliceCounter < alice.length) {
-            int score = alice[aliceCounter];
-            if (score > scores[0]) {
-                aliceRanks[aliceCounter] = 1;
-                break;
+        int cgnoa = 0;
+        while (cgnoa < alice.length) {
+            int score = alice[cgnoa];
+            if (score >= scores[0]) {// scored highest
+                aliceRanks[cgnoa] = 1;
+                cgnoa++;
+                continue;
             }
-            if (score < scores[n - 1]) {
-                aliceRanks[aliceCounter] = ranks[n - 1] + 1;
-            } else {
-                int position = bs(scores, score);
-                aliceRanks[aliceCounter] = ranks[position];
+            if (score < scores[scores.length - 1]) {//scored less than least
+                aliceRanks[cgnoa] = ranks[scores.length - 1] + 1;
+                cgnoa++;
+                continue;
             }
-
-            aliceCounter++;
+            if(score == scores[scores.length - 1]){//scores equal to least
+                aliceRanks[cgnoa] = ranks[scores.length - 1];
+                cgnoa++;
+                continue;
+            }
+            int position = bs(scores, score);
+            aliceRanks[cgnoa] = ranks[position];
+            cgnoa++;
         }
         return aliceRanks;
     }
@@ -57,7 +62,7 @@ public class ClimbLeaderboard {
             mid = left + (right - left) / 2;
             if (array[mid] == targetValue) {
                 return mid;
-            } else if (targetValue > array[mid] & targetValue < array[mid - 1]) {
+            } else if (targetValue > array[mid] && targetValue < array[mid - 1]) {
                 return mid;
             } else if (targetValue < array[mid] && targetValue >= array[mid + 1]) {
                 return mid + 1;
@@ -73,10 +78,18 @@ public class ClimbLeaderboard {
 
     public static void main(String[] args) throws IOException {
 
-        int[] scores = {100, 90, 90, 80, 75, 60};
-        int[] alice = {50, 65, 77, 90, 102};
+        String teamScoresString = "295 294 291 287 287 285 285 284 283 279 277 274 274 271 270 268 268 268 264 260 259 258 257 255 252 250 244 241 240 237 236 236 231 227 227 227 226 225 224 223 216 212 200 197 196 194 193 189 188 187 183 182 178 177 173 171 169 165 143 140 137 135 133 130 130 130 128 127 122 120 116 114 113 109 106 103 99 92 85 81 69 68 63 63 63 61 57 51 47 46 38 30 28 25 22 15 14 12 6 4";
+        String aliceScoresString = "5 5 6 14 19 20 23 25 29 29 30 30 32 37 38 38 38 41 41 44 45 45 47 59 59 62 63 65 67 69 70 72 72 76 79 82 83 90 91 92 93 98 98 100 100 102 103 105 106 107 109 112 115 118 118 121 122 122 123 125 125 125 127 128 131 131 133 134 139 140 141 143 144 144 144 144 147 150 152 155 156 160 164 164 165 165 166 168 169 170 171 172 173 174 174 180 184 187 187 188 194 197 197 197 198 201 202 202 207 208 211 212 212 214 217 219 219 220 220 223 225 227 228 229 229 233 235 235 236 242 242 245 246 252 253 253 257 257 260 261 266 266 268 269 271 271 275 276 281 282 283 284 285 287 289 289 295 296 298 300 300 301 304 306 308 309 310 316 318 318 324 326 329 329 329 330 330 332 337 337 341 341 349 351 351 354 356 357 366 369 377 379 380 382 391 391 394 396 396 400";
 
-        int[] result = climbingLeaderboard(scores, alice);
+
+
+        int[] scores = Arrays.asList(teamScoresString.split(" ")).stream().map(Integer::parseInt)
+                .collect(Collectors.toList()).stream().mapToInt(i -> i).toArray();
+        System.out.println(scores.length);
+        int[] aliceScores = Arrays.asList(aliceScoresString.split(" ")).stream().map(Integer::parseInt)
+                .collect(Collectors.toList()).stream().mapToInt(i -> i).toArray();
+        System.out.println(aliceScores.length);
+        int[] result = climbingLeaderboard(scores, aliceScores);
 
         prints("alice's ranks", result);
 

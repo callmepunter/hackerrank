@@ -8,14 +8,14 @@ import java.util.*;
 
 public class GridlandMetro {
 
-    // Complete the gridlandMetro function below.
-    static int gridlandMetro(int n, int m, int k, int[][] track) {
+    // Complete the gridland Metro function below.
+    static BigInteger gridlandMetro(int n, int m, int k, int[][] track) {
         Network network = new Network(n, m);
-        for (int row = 0; row < track.length; row++) {
+        for (int row = 0; row < k; row++) {
             network.addLine(BigInteger.valueOf(track[row][0]), BigInteger.valueOf(track[row][1]), BigInteger.valueOf(track[row][2]));
         }
 
-        return network.computeAvailable().intValue();
+        return network.computeAvailable();
     }
 
 
@@ -32,7 +32,7 @@ public class GridlandMetro {
         public void addLine(BigInteger rowNum, BigInteger origin, BigInteger end) {
             if (grid.containsKey(rowNum)) {
                 grid.get(rowNum).addLine(origin, end);
-            }else {
+            } else {
                 Track newTrack = new Track();
                 newTrack.addLine(origin, end);
                 grid.put(rowNum, newTrack);
@@ -48,7 +48,7 @@ public class GridlandMetro {
         }
 
 
-    }
+    }//end of network
 
     public static class Track {
         private List<Line> lines = new ArrayList();
@@ -60,22 +60,25 @@ public class GridlandMetro {
         public BigInteger computeUsage() {
             boolean first = true;
             BigInteger total = BigInteger.ZERO;
-            Line computed = new Line("0", "0");
 
+            Collections.sort(lines, (line1, line2) -> line1.getOrigin().compareTo(line2.getOrigin()) > 0 ? 1 : -1);
+            Stack<Line> groupMaker = new Stack<>();
             for (Line line : lines) {
                 if (first) {
-                    computed = line;
+                    groupMaker.push(line);
                     first = false;
                     continue;
                 }
-                if (line.intersects(computed)) {
-                    line.union(computed);
-                    continue;
+                if (groupMaker.peek().intersects(line)) {
+                    groupMaker.push(groupMaker.pop().union(line));
+                } else {
+                    groupMaker.push(line);
                 }
-                total = total.add(computed.size());
-                computed = line;
             }
-            return total.add(computed.size());
+            while (!groupMaker.isEmpty()) {
+                total = total.add(groupMaker.pop().size());
+            }
+            return total;
         }
     }
 
@@ -83,14 +86,26 @@ public class GridlandMetro {
         BigInteger origin;
         BigInteger end;
 
+
+        @Override
+        public String toString() {
+            return "Line{" +
+                    "origin=" + origin +
+                    ", end=" + end +
+                    '}';
+        }
+
+        public BigInteger getOrigin() {
+            return origin;
+        }
+
+        public BigInteger getEnd() {
+            return end;
+        }
+
         public Line(BigInteger origin, BigInteger end) {
             this.origin = origin;
             this.end = end;
-        }
-
-        public Line(String origin, String end) {
-            this.origin = new BigInteger(origin);
-            this.end = new BigInteger(end);
         }
 
         public Line union(Line other) {
@@ -106,22 +121,17 @@ public class GridlandMetro {
             return intersectsLeft(other) || intersectsRight(other);
         }
 
-
-        public boolean intersectsCompletely(Line other) {
-            return this.isBetween(other.origin) && this.isBetween(other.end);
-        }
-
         public boolean intersectsLeft(Line other) {
-            return other.isBetween(this.origin);
+            return isBetween(other.end);
         }
 
         public boolean intersectsRight(Line other) {
-            return other.isBetween(this.end);
+            return isBetween(other.origin);
         }
 
-        public boolean isBetween(BigInteger median) {
-            int left = this.origin.compareTo(median);
-            int right = this.end.compareTo(median);
+        public boolean isBetween(BigInteger pointer) {
+            int left = this.origin.compareTo(pointer);
+            int right = this.end.compareTo(pointer);
             return left <= 0 && right >= 0;
         }
 
@@ -132,14 +142,15 @@ public class GridlandMetro {
 
 
     public static void main(String[] args) {
+        int i = 511560154;
+        System.out.println(i);
         input();
-
     }
 
 
     public static void input() {
-
-        URL testCase = GridlandMetro.class.getClassLoader().getResource("gridland/input/input02.txt");
+        //case 10 expected 411903339261164011
+        URL testCase = GridlandMetro.class.getClassLoader().getResource("gridland/input/input10.txt");
         Scanner scanner =
                 null;
         try {
@@ -169,7 +180,8 @@ public class GridlandMetro {
         }
         prints("Tracks", track);
 
-        int result = gridlandMetro(n, m, k, track);
+        BigInteger result = gridlandMetro(n, m, k, track);
+        System.out.println("-----------------------");
         System.out.println(result);
 
         scanner.close();
